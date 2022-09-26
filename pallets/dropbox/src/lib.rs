@@ -97,18 +97,26 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(100)]
-		pub fn upload_file(origin: OriginFor<T>, ) -> DispatchResult {
+		pub fn upload_file(
+			origin: OriginFor<T>, 
+			file_cid: T::Hash, 
+			file_link: String,
+		  	allow_download: bool,
+			file_type: FileType,
+			cost: u64,
+			file_size: u64
+		) -> DispatchResult {
 
 		}
 
 		#[pallet::weight(100)]
-		pub fn download_file(origin: OriginFor<T>) -> DispatchResult {
+		pub fn download_file(origin: OriginFor<T>, file_cid: T::Hash) -> DispatchResult {
 
 		}
 
 		#[pallet::weight(100)]
-		pub fn transfer_file(origin: OriginFor<T>) -> DispatchResult {
-			
+		pub fn transfer_file(origin: OriginFor<T>, file_cid: T::Hash, new_owner: T::AccountId) -> DispatchResult {
+
 		}
 	}
 }

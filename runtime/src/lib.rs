@@ -267,7 +267,7 @@ impl pallet_dropbox::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type DefaultFreeFileSize = ConstU32<150>;
-	type CostPerByte = ConstU64<250>;
+	type CostPerByte = ConstU32<250>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
