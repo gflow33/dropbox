@@ -5,18 +5,17 @@
 /// <https://docs.substrate.io/v3/runtime/frame>
 pub use pallet::*;
 
-#[cfg(test)]
-mod mock;
 
-#[cfg(test)]
-mod tests;
-
-#[cfg(feature = "runtime-benchmarks")]
-mod benchmarking;
 
 #[frame_support::pallet]
 pub mod pallet {
-	use frame_support::pallet_prelude::*;
+	use frame_support::{
+		dispatch::{DispatchResult, DispatchResultWithPostInfo},
+		pallet_prelude::*,
+		sp_runtime::{traits::{Hash, Zero}},
+		traits::{Currency, ExistenceRequirement, Randomness}
+		transactional,
+	};
 	use frame_system::pallet_prelude::*;
 
 	/// Configure the pallet by specifying the parameters and types on which it depends.
