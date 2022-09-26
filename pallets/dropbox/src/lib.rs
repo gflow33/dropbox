@@ -23,7 +23,7 @@ pub mod pallet {
 	#[codec(mel_bound())]
 	pub struct File<T: Config> {
 		pub file_cid: [u8; 16],
-		pub file_link: &str,
+		pub file_link: String,
 		pub allow_download: bool,
 		pub file_type: FileType,
 		pub cost: u64,
@@ -59,10 +59,6 @@ pub mod pallet {
 		//type
 	}
 
-	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
-	pub struct Pallet<T>(_);
-
 	// The pallet's runtime storage items.
 	// https://docs.substrate.io/v3/runtime/storage
 	#[pallet::storage]
@@ -71,23 +67,28 @@ pub mod pallet {
 	// https://docs.substrate.io/v3/runtime/storage#declaring-storage-items
 	pub type Something<T> = StorageValue<_, u32>;
 
+	// Errors inform users that something went wrong.
+	#[pallet::error]
+	pub enum Error<T> {
+		/// User is not allowed to download file.
+		FileNotAllowedToDownload,
+		/// The file does not exist
+		FileNotExist,
+		/// Ensures that an account has enough funds to download file
+		NotEnoughBalance 
+	}
+
 	// Pallets use events to inform users when important changes are made.
 	// https://docs.substrate.io/v3/runtime/events-and-errors
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Event documentation should end with an array that provides descriptive names for event
-		/// parameters. [something, who]
-		SomethingStored(u32, T::AccountId),
-	}
-
-	// Errors inform users that something went wrong.
-	#[pallet::error]
-	pub enum Error<T> {
-		/// Error names should be descriptive.
-		NoneValue,
-		/// Errors should have helpful documentation associated with them.
-		StorageOverflow,
+		/// A file was successfully uploaded.
+		Uploaded(T::AccountId, T::Hash),
+		/// A file was successfully downloaded.
+		Downloaded(T::AccountId, T::Hash,  BalanceOf<T>),
+		/// A file was successfully transfered.
+		Transfered(T::AccountId, T::AccountId, T::Hash)
 	}
 
 	// Dispatchable functions allows users to interact with the pallet and invoke state changes.

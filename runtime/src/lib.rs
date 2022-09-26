@@ -265,6 +265,9 @@ impl pallet_sudo::Config for Runtime {
 /// Configure the pallet-dropbox in pallets/dropbox.
 impl pallet_dropbox::Config for Runtime {
 	type Event = Event;
+	type Currency = Balances;
+	type DefaultFreeFileSize = ConstU32<150>;
+	type CostPerByte = ConstU64<250>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
