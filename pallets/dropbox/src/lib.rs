@@ -13,16 +13,41 @@ pub mod pallet {
 		dispatch::{DispatchResult, DispatchResultWithPostInfo},
 		pallet_prelude::*,
 		sp_runtime::{traits::{Hash, Zero}},
-		traits::{Currency, ExistenceRequirement, Randomness}
+		traits::{Currency, ExistenceRequirement, Randomness},
 		transactional,
 	};
 	use frame_system::pallet_prelude::*;
 
+	#[derive(Clone, Encode, Decode, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+	#[scale_info(skip_type_params(T))]
+	#[codec(mel_bound())]
+	pub struct File<T: Config> {
+		pub file_cid: [u8; 16],
+		pub file_link: &str,
+		pub allow_download: bool,
+		pub file_type: FileType,
+		pub cost: u64,
+		pub file_size: u64,
+		pub owner: AccountOf<T> 
+	}
+
+	#[derive(Clone, Encode, Decode, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+	pub enum FileType {
+		Normal, 
+		Priviledged
+	}
+
+	#[pallet::pallet]
+	#[pallet::generate_store(trait Store)]
+	pub struct Pallet<T>(_);
+
 	/// Configure the pallet by specifying the parameters and types on which it depends.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: pallet_balances::Config + frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+
+		type Currency: Currency<Self::AccountId>;
 	}
 
 	#[pallet::pallet]
