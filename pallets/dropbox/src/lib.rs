@@ -11,12 +11,16 @@ pub use pallet::*;
 pub mod pallet {
 	use frame_support::{
 		dispatch::{DispatchResult, DispatchResultWithPostInfo},
-		pallet_prelude::*,
+		pallet_prelude::{*, StorageValue},
 		sp_runtime::{traits::{Hash, Zero}},
 		traits::{Currency, ExistenceRequirement, Randomness},
-		transactional,
+		transactional, Twox64Concat,
 	};
 	use frame_system::pallet_prelude::{*, OriginFor};
+
+	type AccountOf<T> = <T as frame_system::Config>::AccountId;
+	type BalanceOf<T> = 
+	<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	#[derive(Clone, Encode, Decode, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 	#[scale_info(skip_type_params(T))]
@@ -26,7 +30,7 @@ pub mod pallet {
 		pub file_link: String,
 		pub allow_download: bool,
 		pub file_type: FileType,
-		pub cost: u64,
+		pub cost: Option<BalanceOf<T>>,
 		pub file_size: u64,
 		pub owner: AccountOf<T> 
 	}
@@ -36,6 +40,12 @@ pub mod pallet {
 		Normal, 
 		Priviledged
 	}
+
+	//impl Default for FileType {
+	//	fn default() -> Self {
+	//		FileType::Normal
+	//	}
+	//}
 
 	#[pallet::pallet]
 	#[pallet::generate_store(trait Store)]
@@ -61,11 +71,38 @@ pub mod pallet {
 
 	// The pallet's runtime storage items.
 	// https://docs.substrate.io/v3/runtime/storage
-	#[pallet::storage]
-	#[pallet::getter(fn something)]
 	// Learn more about declaring storage items:
 	// https://docs.substrate.io/v3/runtime/storage#declaring-storage-items
-	pub type Something<T> = StorageValue<_, u32>;
+	
+	#[pallet::storage]
+	#[pallet::getter(fn all_files_count)]
+	/// Keeps track of the number of files available.
+	pub(super) type AllFilesCount<T: Config> = StorageValue<_, u64, ValueQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn file_details)]
+	pub(super) type Files<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		T::Hash,
+		File<T>
+		>;  
+
+	#[pallet::storage]
+	#[pallet::getter(fn downloaded_files)]
+	pub(super) type DownloadedFiles<T: Config> = StorageMap<
+		_,
+		Twox64Concat,
+		T::AccountId,
+		BoundedVec<T::Hash, T::MaxKittiesOwned>,
+		ValueQuery,
+	    >;
+
+	#[pallet::storage]
+	#[pallet::getter(fn users_who_download)]
+	pub (super) type UsersWhoDownload<T: Config> = StorageValue<>;
+
+
 
 	// Errors inform users that something went wrong.
 	#[pallet::error]
