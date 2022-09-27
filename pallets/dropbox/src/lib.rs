@@ -65,6 +65,9 @@ pub mod pallet {
 		#[pallet::constant]
 		type CostPerByte: Get<u32>;
 
+		#[pallet::constant]
+		type MaxFilesUploaded: Get<u32>;
+
 		//#[pallet::constant]
 		//type
 	}
@@ -94,7 +97,7 @@ pub mod pallet {
 		_,
 		Twox64Concat,
 		T::AccountId,
-		BoundedVec<T::Hash, T::MaxKittiesOwned>,
+		BoundedVec<T::Hash, T::MaxFilesDownloaded>,
 		ValueQuery,
 	    >;
 
