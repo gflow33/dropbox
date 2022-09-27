@@ -268,6 +268,7 @@ impl pallet_dropbox::Config for Runtime {
 	type Currency = Balances;
 	type DefaultFreeFileSize = ConstU32<150>;
 	type CostPerByte = ConstU32<250>;
+	type MaxFilesUploaded = frame_support::pallet_prelude::ConstU32<100>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

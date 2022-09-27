@@ -26,7 +26,7 @@ pub mod pallet {
 	#[scale_info(skip_type_params(T))]
 	#[codec(mel_bound())]
 	pub struct File<T: Config> {
-		pub file_cid: [u8; 16],
+		//pub file_cid: [u8; 16],
 		pub file_link: String,
 		pub allow_download: bool,
 		pub file_type: FileType,
@@ -84,26 +84,39 @@ pub mod pallet {
 
 	#[pallet::storage]
 	#[pallet::getter(fn file_details)]
+	/// File details
 	pub(super) type Files<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::Hash,
 		File<T>
 		>;  
-
+	
+	#[pallet::storage]
+	#[pallet::getter(fn get_user_file_details)]
+	pub(super) type FilesPerUser<T: Config> = StorageMap<
+		_, 
+		Twox64Concat, 
+		T::AccountId, 
+		BoundedVec<T::Hash, 
+		T::MaxFilesUploaded>, 
+		ValueQuery
+		>;
+	
+	
 	#[pallet::storage]
 	#[pallet::getter(fn downloaded_files)]
 	pub(super) type DownloadedFiles<T: Config> = StorageMap<
 		_,
 		Twox64Concat,
 		T::AccountId,
-		BoundedVec<T::Hash, T::MaxFilesDownloaded>,
+		BoundedVec<T::Hash, T::MaxFilesUploaded>,
 		ValueQuery,
 	    >;
 
-	#[pallet::storage]
-	#[pallet::getter(fn users_who_download)]
-	pub (super) type UsersWhoDownload<T: Config> = StorageValue<>;
+	//#[pallet::storage]
+	//#[pallet::getter(fn users_who_download)]
+	//pub (super) type UsersWhoDownload<T: Config> = StorageMap<_, Twox64Concat, T::AccountId, BoundedVec<T::Hash, T::MaxFilesUploaded>, ValueQuery>;
 
 
 
@@ -114,6 +127,10 @@ pub mod pallet {
 		FileNotAllowedToDownload,
 		/// The file does not exist
 		FileNotExist,
+		/// Ensures that the user who wants to dowload privileged files has enought funds to do so.
+		FilePricetooLow,
+		FileCountOverflow,
+		ExceedMaxFileUploaded,
 		/// Ensures that an account has enough funds to download file
 		NotEnoughBalance 
 	}
@@ -143,9 +160,32 @@ pub mod pallet {
 			file_link: String,
 		  	allow_download: bool,
 			file_type: FileType,
-			cost: u64,
+			cost: BalanceOf<T>,
 			file_size: u64
 		) -> DispatchResult {
+			let sender = ensure_signed(origin)?;
+
+			let file = File::<T> {
+				file_link,
+				allow_download,
+				file_type,
+				cost,
+				file_size,
+				owner: sender.clone()
+			};
+
+			let file_cid = T::Hashing::hash_of(&file);
+			let new_count = Self::all_files_count().checked_add(1).ok_or(<Error<T>>::FileCountOverflow)?;
+
+			<FilesPerUser<T>>::try_mutate(&sender, |file_vec| file_vec.try_push(file_cid))
+			.map_err(|_| <Error<T>>::ExceedMaxFileUploaded)?;
+
+			<Files<T>>::insert(file_cid, file);
+			<AllFilesCount<T>>::put(new_count);
+
+			Self::deposit_event(Event::Uploaded(sender, file_cid));
+
+			Ok(())
 
 		}
 
